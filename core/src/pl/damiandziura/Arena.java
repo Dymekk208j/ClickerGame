@@ -112,7 +112,7 @@ public class Arena
      */
     public boolean isCompleted()
     {
-        if(defeatedMonsters >= 1)
+        if(defeatedMonsters >= 10)
         {
             return true;
         }
