@@ -1,20 +1,23 @@
 package pl.damiandziura.screens;
-import pl.damiandziura.*;
+
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.StringBuilder;
 
-import pl.damiandziura.ClickerGame.*;
-
+import pl.damiandziura.Arena;
+import pl.damiandziura.Bar;
+import pl.damiandziura.ClickerGame;
+import pl.damiandziura.Coin;
+import pl.damiandziura.DMG;
+import pl.damiandziura.Enemy;
+import pl.damiandziura.GUI;
+import pl.damiandziura.Player;
 
 import static pl.damiandziura.ClickerGame.CRIT_CHANCE_PRECENT;
 import static pl.damiandziura.ClickerGame.DEFAULT_HEIGHT;
@@ -25,6 +28,9 @@ public class GameScreen extends AbstractScreen
 {
     private static final String NAME = "Dymek";
     private static final int AMOUT_OF_NOTIFICATIONS = 10;
+    private static final int AMOUT_OF_COINS= 100;
+
+    private Coin coin[];
 
     private GUI LvlSwitchBackground;
     private GUI LvlSwitchNormal[];
@@ -49,6 +55,8 @@ public class GameScreen extends AbstractScreen
     private Label TimeLeftLabel;
 
     private float TimerPassiveDmg = 0;
+    private float TimerTest = 0;
+
 
     private DMG dmgArrayList[];
 
@@ -68,7 +76,21 @@ public class GameScreen extends AbstractScreen
         initPlayer();
         initLabels();
         initGUI();
+        initCoins();
 
+
+    }
+
+    private void initCoins() {
+        coin = new Coin[AMOUT_OF_COINS];
+        Texture tex = new Texture("GFX\\GUI\\CoinPlaceHolder.png");
+        for(int a = 0; a < AMOUT_OF_COINS; a++)
+        {
+
+            coin[a] = new Coin(tex, this.stage, 0 , 0, this.player);
+            coin[a].trunOff();
+
+        }
     }
 
     private void initGUI()
@@ -134,8 +156,6 @@ public class GameScreen extends AbstractScreen
 
         initButtonClickActions();
         labelJumpButton[2].setVisible(true);
-
-
     }
 
     private void initButtonClickActions() {
@@ -433,7 +453,45 @@ public class GameScreen extends AbstractScreen
         }
         enemy.generateEnemy(arena.getLevel());
 
+        playGoldRain();
 
+
+    }
+
+    private void playGoldRain()
+    {
+        int goldReward = 500;
+        int amoutOfCoins = MathUtils.random(1, 15);
+
+        for(int a = 0; a < amoutOfCoins; a++)
+        {
+            boolean b = false;
+            int counter = 0;
+            do{
+                counter++;
+
+                if(!coin[a].isInUse())
+                {
+                    coin[a].use(goldReward/amoutOfCoins, 500, 500);
+                    coin[a].animation(enemy.getPosition_X(), enemy.getPosition_Y(), enemy.getWIDTH());
+                    b = true;
+                    counter= amoutOfCoins+1;
+                }
+
+                if(counter >= amoutOfCoins && b == false)
+                {
+                    int rand = MathUtils.random(0, AMOUT_OF_COINS-1);
+                    coin[rand].trunOff();
+                    coin[rand].use(goldReward/amoutOfCoins, 500, 500);
+                    coin[rand].animation(enemy.getPosition_X(), enemy.getPosition_Y(), enemy.getWIDTH());
+                    b = true;
+                    counter= amoutOfCoins+1;
+                }
+
+            }while (b != true && counter < amoutOfCoins);
+        }
+
+        //player.addGold(goldReward);
 
     }
 
@@ -441,7 +499,7 @@ public class GameScreen extends AbstractScreen
     {
         if(enemy.isAlive())
         {
-            enemy.hurt(player.getPassiveDmg()/5);
+            enemy.hurt(player.getPassiveDmg()/20);
             enemy.isAlive();//zeby uaktualnic pole ktore mowi o tym czy zyje czy nie;
             if(!enemy.isAlive()) defeatedEnemy();
         }
@@ -476,12 +534,23 @@ public class GameScreen extends AbstractScreen
             }
         }
         TimerPassiveDmg += delta;
-        if(TimerPassiveDmg >= 0.2)
+        if(TimerPassiveDmg >= 0.05)
         {
             TimerPassiveDmg = 0;
             hitMonsterPassive();
         }
-        InformationLabel.setText("Level: " + Integer.toString(arena.getLevel()) + "             Defeated monsters: " + Integer.toString(arena.getDefeatedMonsters()) + "    Enemy name: " + enemy.getName());
+
+        TimerTest += delta;
+        if(TimerTest >= 0.2)
+        {
+            for(int a = 0; a < AMOUT_OF_COINS; a++)
+            {
+                coin[a].check();
+            }
+            TimerTest = 0;
+          //
+        }
+        InformationLabel.setText("Level: " + Integer.toString(arena.getLevel()) + "    Defeated monsters: " + Integer.toString(arena.getDefeatedMonsters()) + "    Enemy name: " + enemy.getName() + "    Gold: " + Integer.toString(player.getGold()));
         //raz na sekunde hitMonsterPassive();
 
         updatesGUI();

@@ -6,8 +6,9 @@ public class Player
 {
     private String name;
     private int MinClickDmg = 1;
-    private int MaxClickDmg = 100;
-    private int PassiveDmg = 50;
+    private int MaxClickDmg = 10;
+    private int PassiveDmg = 5;
+    private int Gold = 0;
 
     public Player(String name) {
         this.name = name;
@@ -63,5 +64,17 @@ public class Player
 
     public void setMaxClickDmg(int maxClickDmg) {
         MaxClickDmg = maxClickDmg;
+    }
+
+    public void addGold(int amount)
+    {
+        Gold += amount;
+    }
+    public int getGold() {
+        return Gold;
+    }
+
+    public void setGold(int gold) {
+        Gold = gold;
     }
 }
